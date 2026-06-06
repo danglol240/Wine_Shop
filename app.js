@@ -127,10 +127,47 @@ function checkout() {
 
 function placeOrder() {
   const payment = document.querySelector('input[name="payment"]:checked')?.value || 'cod';
+  const nameEl = document.querySelector('#checkout-modal input[placeholder="Họ và tên"]');
+  const phoneEl = document.querySelector('#checkout-modal input[placeholder="Số điện thoại"]');
+  const addrEl = document.querySelector('#checkout-modal input[placeholder="Địa chỉ giao hàng"]');
+
+  const customerName = nameEl?.value.trim() || (currentUser ? currentUser.name : 'Khách hàng');
+  const customerPhone = phoneEl?.value.trim() || (currentUser ? currentUser.phone : '');
+  const customerAddr = addrEl?.value.trim() || '';
+
+  // Save order to localStorage
+  const orders = JSON.parse(localStorage.getItem('daem-orders') || '[]');
+  const order = {
+    id: 'DEM' + Date.now(),
+    date: new Date().toISOString(),
+    customer: {
+      name: customerName,
+      phone: customerPhone,
+      address: customerAddr,
+      email: currentUser ? currentUser.email : 'guest@daemwine.vn',
+      userId: currentUser ? currentUser.email : null
+    },
+    items: cart.map(i => ({ id: i.id, name: i.name, nameEn: i.nameEn, qty: i.qty, price: i.price, img: i.img })),
+    total: cart.reduce((s,i) => s + i.price * i.qty, 0),
+    payment,
+    status: 'pending'
+  };
+  orders.push(order);
+  localStorage.setItem('daem-orders', JSON.stringify(orders));
+
+  // Update inventory
+  const inv = JSON.parse(localStorage.getItem('daem-inventory') || '{}');
+  cart.forEach(item => {
+    if (!inv[item.id]) inv[item.id] = { stock: 100, sold: 0 };
+    inv[item.id].stock = Math.max(0, (inv[item.id].stock || 100) - item.qty);
+    inv[item.id].sold = (inv[item.id].sold || 0) + item.qty;
+  });
+  localStorage.setItem('daem-inventory', JSON.stringify(inv));
+
   const msgs = {
-    cod: '🎉 Đặt hàng thành công! Vui lòng chuẩn bị tiền mặt khi nhận hàng.',
-    qr: '🎉 Đặt hàng thành công! Vui lòng hoàn tất thanh toán QR.',
-    visa: '🎉 Đặt hàng thành công! Thẻ của bạn đã được xử lý.'
+    cod: '🎉 Đặt hàng thành công! Mã đơn: ' + order.id,
+    qr:  '🎉 Đặt hàng thành công! Mã đơn: ' + order.id,
+    visa:'🎉 Đặt hàng thành công! Mã đơn: ' + order.id
   };
   cart = []; saveCart();
   closeModal('checkout-modal');
@@ -379,6 +416,14 @@ function loginDemo() {
   else if (!isValidEmail(email)) { showFieldError(emailEl, 'Email không hợp lệ'); ok = false; }
   if (!pass) { showFieldError(passEl, 'Vui lòng nhập mật khẩu'); ok = false; }
   if (!ok) return;
+
+  // Check admin credentials
+  const ADMIN = { email: 'admin@daemwine.vn', password: btoa('DaEm@Admin2025'), name: 'Admin', role: 'admin' };
+  if (email.toLowerCase() === ADMIN.email && btoa(pass) === ADMIN.password) {
+    sessionStorage.setItem('daem-admin', JSON.stringify(ADMIN));
+    window.location.href = 'admin.html';
+    return;
+  }
 
   const user = UserStore.find(email);
   if (!user) { showFieldError(emailEl, 'Email chưa được đăng ký'); return; }
