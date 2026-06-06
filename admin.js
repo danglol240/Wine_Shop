@@ -28,7 +28,7 @@ const Store = {
   seedDemoData() {
     if (localStorage.getItem('daem-demo-seeded')) return;
     const now = Date.now();
-    const names = ['Nguyễn Lan Anh','Trần Minh Đức','Phạm Thị Hương','Lê Văn Khoa','Hoàng Thu Trang','Đỗ Quốc Bảo','Vũ Thị Mai','Bùi Tuấn Anh'];
+    const names = ['Hoàng Hải Đăng','Hoàng Giang Nam','danglol240','Lê Văn Khoa','Hoàng Thu Trang','Đỗ Quốc Bảo','Vũ Thị Mai','Bùi Tuấn Anh'];
     const phones = ['0901234567','0912345678','0923456789','0934567890','0945678901','0956789012','0967890123','0978901234'];
     const addrs = ['12 Nguyễn Huệ, Q1, TP.HCM','45 Hoàn Kiếm, Hà Nội','88 Bạch Đằng, Đà Nẵng','23 Lê Lợi, Huế','67 Trần Phú, Nha Trang'];
     const pays = ['cod','qr','visa'];
